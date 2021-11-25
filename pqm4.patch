@@ -1,0 +1,30 @@
+diff --git a/skiplist.py b/skiplist.py
+index 8cb5c17..9aeb640 100644
+--- a/skiplist.py
++++ b/skiplist.py
+@@ -1,3 +1,5 @@
++from math import inf
++
+ skip_list = [
+     {'scheme': 'bikel1', 'implementation': 'm4f', 'estmemory': 103424},
+     {'scheme': 'bikel3', 'implementation': 'm4f', 'estmemory': 181248},
+@@ -15,7 +17,9 @@ skip_list = [
+     {'scheme': 'ntruhps2048677', 'implementation': 'm4f', 'estmemory': 33792},
+     {'scheme': 'ntruhps4096821', 'implementation': 'm4f', 'estmemory': 40960},
+     {'scheme': 'ntruhrss701', 'implementation': 'm4f', 'estmemory': 32768},
+-    {'scheme': 'saber', 'implementation': 'm4f', 'estmemory': 12288},
++    {'scheme': 'saber', 'implementation': 'm4f', 'estmemory': inf},
++    {'scheme': 'saber', 'implementation': 'm4fspeed', 'estmemory': inf},
++    {'scheme': 'saber', 'implementation': 'm4fstack', 'estmemory': inf},
+     {'scheme': 'ntrulpr953', 'implementation': 'm4f', 'estmemory': 40960},
+     {'scheme': 'ntrulpr857', 'implementation': 'm4f', 'estmemory': 38912},
+     {'scheme': 'ntrulpr761', 'implementation': 'm4f', 'estmemory': 29696},
+@@ -81,7 +85,7 @@ skip_list = [
+     {'scheme': 'ntrulpr653', 'implementation': 'clean', 'estmemory': 18432},
+     {'scheme': 'ntrulpr1277', 'implementation': 'clean', 'estmemory': 28672},
+     {'scheme': 'ntrulpr1013', 'implementation': 'clean', 'estmemory': 23552},
+-    {'scheme': 'saber', 'implementation': 'clean', 'estmemory': 20480},
++    {'scheme': 'saber', 'implementation': 'clean', 'estmemory': inf},
+     {'scheme': 'sntrup953', 'implementation': 'clean', 'estmemory': 22528},
+     {'scheme': 'sntrup857', 'implementation': 'clean', 'estmemory': 20480},
+     {'scheme': 'sntrup761', 'implementation': 'clean', 'estmemory': 18432},

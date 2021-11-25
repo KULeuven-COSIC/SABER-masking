@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "libopencm3-stm32f4",
+            "includePath": [
+                "${workspaceFolder}/pqm4/libopencm3/include",
+                "${workspaceFolder}/pqm4/common",
+                "${workspaceFolder}/pqm4/mupq/common",
+                "${workspaceFolder}/src/saber/m4",
+                "${workspaceFolder}/src/saber/m4_masking"
+            ],
+            "defines": [
+                "STM32F4"
+            ],
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "compilerArgs": [
+                "-mthumb",
+                "-mcpu=cortex-m4",
+                "-mfloat-abi=hard",
+                "-mfpu=fpv4-sp-d16"
+            ]
+        }
+    ],
+    "version": 4
+}

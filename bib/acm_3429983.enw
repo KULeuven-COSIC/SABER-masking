@@ -1,0 +1,17 @@
+%0 Journal Article
+%T A Side-Channel-Resistant Implementation of SABER
+%V 17
+%@ 1550-4832
+%U https://doi.org/10.1145/3429983
+%R 10.1145/3429983
+%N 2
+%J J. Emerg. Technol. Comput. Syst.
+%I Association for Computing Machinery
+%A Michiel Van Beirendonck
+%A Jan-Pieter D’anvers
+%A Angshuman Karmakar
+%A Josep Balasch
+%A Ingrid Verbauwhede
+%D 2021
+%P Article 10
+%K SABER, Post-quantum cryptography, ARM Cortex-M4, masking

@@ -1,0 +1,36 @@
+diff --git a/src/saber/m4_masking/A2B.c b/src/saber/m4_masking/A2B.c
+index 3eb9712..6cc4909 100644
+--- a/src/saber/m4_masking/A2B.c
++++ b/src/saber/m4_masking/A2B.c
+@@ -148,8 +148,20 @@ static void A2B_Goubin(uint16_t *Aptr, uint16_t *Rptr)
+ }
+ #endif
+ 
++#ifdef PROFILE_HASHING
++#include "hal.h"
++#include "sendfn.h"
++unsigned long long A2B_cycles;
++#define printcycles(S, U) send_unsignedll((S), (U))
++#endif
++
+ void poly_A2A(uint16_t poly[SABER_SHARES][SABER_N], uint32_t mod, int n)
+ {
++#ifdef PROFILE_HASHING
++    unsigned long long t0, t1;
++    t0 = hal_get_time();
++#endif
++
+ #ifdef SABER_MASKING_A2A
+ 
+     struct A2A_C_A_s args = gen_C_A(n);
+@@ -169,4 +181,10 @@ void poly_A2A(uint16_t poly[SABER_SHARES][SABER_N], uint32_t mod, int n)
+     }
+ 
+ #endif
++
++#ifdef PROFILE_HASHING + t1 = hal_get_time();
++    A2B_cycles = t1 - t0;
++    printcycles("A2B with n = :", n);
++    printcycles("A2B cycles cycles:", A2B_cycles);
++#endif
+ }

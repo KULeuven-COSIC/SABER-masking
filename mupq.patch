@@ -1,0 +1,316 @@
+diff --git a/crypto_kem/hashing.c b/crypto_kem/hashing.c
+index 97cce7d..68d059a 100644
+--- a/crypto_kem/hashing.c
++++ b/crypto_kem/hashing.c
+@@ -20,6 +20,8 @@
+ #define MUPQ_crypto_kem_keypair NAMESPACE(crypto_kem_keypair)
+ #define MUPQ_crypto_kem_enc NAMESPACE(crypto_kem_enc)
+ #define MUPQ_crypto_kem_dec NAMESPACE(crypto_kem_dec)
++#define MUPQ_crypto_kem_crypto_kem_keypair_sk_masked NAMESPACE(crypto_kem_keypair_sk_masked)
++#define MUPQ_crypto_kem_dec_masked NAMESPACE(crypto_kem_dec_masked)
+ 
+ #define printcycles(S, U) send_unsignedll((S), (U))
+ 
+@@ -27,11 +29,12 @@ unsigned long long hash_cycles;
+ 
+ int main(void)
+ {
+-  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES];
++  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES], key_c[MUPQ_CRYPTO_BYTES];
+   unsigned char sk[MUPQ_CRYPTO_SECRETKEYBYTES];
+   unsigned char pk[MUPQ_CRYPTO_PUBLICKEYBYTES];
+   unsigned char ct[MUPQ_CRYPTO_CIPHERTEXTBYTES];
+   unsigned long long t0, t1;
++  sk_masked_s sk_masked;
+   int i;
+ 
+   hal_setup(CLOCK_BENCHMARK);
+@@ -64,7 +67,16 @@ int main(void)
+     printcycles("decaps cycles:", t1-t0);
+     printcycles("decaps hash cycles:", hash_cycles);
+ 
+-    if (memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES)) {
++    // Masked decapsulation
++    MUPQ_crypto_kem_crypto_kem_keypair_sk_masked(&sk_masked, sk);
++    hash_cycles = 0;
++    t0 = hal_get_time();
++    MUPQ_crypto_kem_dec_masked(key_c, ct, &sk_masked);
++    t1 = hal_get_time();
++    printcycles("masked decaps cycles:", t1-t0);
++    printcycles("masked decaps hash cycles:", hash_cycles);
++
++    if (memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES) | memcmp(key_a, key_c, MUPQ_CRYPTO_BYTES)) {
+       hal_send_str("ERROR KEYS\n");
+     }
+     else {
+diff --git a/crypto_kem/speed.c b/crypto_kem/speed.c
+index 8ade42d..c7adb6d 100644
+--- a/crypto_kem/speed.c
++++ b/crypto_kem/speed.c
+@@ -20,16 +20,19 @@
+ #define MUPQ_crypto_kem_keypair NAMESPACE(crypto_kem_keypair)
+ #define MUPQ_crypto_kem_enc NAMESPACE(crypto_kem_enc)
+ #define MUPQ_crypto_kem_dec NAMESPACE(crypto_kem_dec)
++#define MUPQ_crypto_kem_crypto_kem_keypair_sk_masked NAMESPACE(crypto_kem_keypair_sk_masked)
++#define MUPQ_crypto_kem_dec_masked NAMESPACE(crypto_kem_dec_masked)
+ 
+ #define printcycles(S, U) send_unsignedll((S), (U))
+ 
+ int main(void)
+ {
+-  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES];
++  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES], key_c[MUPQ_CRYPTO_BYTES];
+   unsigned char sk[MUPQ_CRYPTO_SECRETKEYBYTES];
+   unsigned char pk[MUPQ_CRYPTO_PUBLICKEYBYTES];
+   unsigned char ct[MUPQ_CRYPTO_CIPHERTEXTBYTES];
+   unsigned long long t0, t1;
++  sk_masked_s sk_masked;
+   int i;
+ 
+   hal_setup(CLOCK_BENCHMARK);
+@@ -56,7 +59,14 @@ int main(void)
+     t1 = hal_get_time();
+     printcycles("decaps cycles:", t1-t0);
+ 
+-    if (memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES)) {
++    // Masked decapsulation
++    MUPQ_crypto_kem_crypto_kem_keypair_sk_masked(&sk_masked, sk);
++    t0 = hal_get_time();
++    MUPQ_crypto_kem_dec_masked(key_c, ct, &sk_masked);
++    t1 = hal_get_time();
++    printcycles("masked decaps cycles:", t1-t0);
++
++    if (memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES) | memcmp(key_a, key_c, MUPQ_CRYPTO_BYTES)) {
+       hal_send_str("ERROR KEYS\n");
+     }
+     else {
+diff --git a/crypto_kem/stack.c b/crypto_kem/stack.c
+index c5e1f5f..b57a5c4 100644
+--- a/crypto_kem/stack.c
++++ b/crypto_kem/stack.c
+@@ -28,6 +28,8 @@
+ #define MUPQ_crypto_kem_keypair NAMESPACE(crypto_kem_keypair)
+ #define MUPQ_crypto_kem_enc NAMESPACE(crypto_kem_enc)
+ #define MUPQ_crypto_kem_dec NAMESPACE(crypto_kem_dec)
++#define MUPQ_crypto_kem_crypto_kem_keypair_sk_masked NAMESPACE(crypto_kem_keypair_sk_masked)
++#define MUPQ_crypto_kem_dec_masked NAMESPACE(crypto_kem_dec_masked)
+ 
+ #define send_stack_usage(S, U) send_unsigned((S), (U))
+ 
+@@ -36,11 +38,12 @@ volatile unsigned char *p;
+ unsigned int c;
+ uint8_t canary = 0x42;
+ 
+-unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES];
++unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES], key_c[MUPQ_CRYPTO_BYTES];
+ unsigned char pk[MUPQ_CRYPTO_PUBLICKEYBYTES];
+ unsigned char sendb[MUPQ_CRYPTO_CIPHERTEXTBYTES];
+ unsigned char sk_a[MUPQ_CRYPTO_SECRETKEYBYTES];
+-unsigned int stack_key_gen, stack_encaps, stack_decaps;
++unsigned int stack_key_gen, stack_encaps, stack_decaps, stack_decaps_masked;
++sk_masked_s sk_masked;
+ 
+ #define FILL_STACK()                                                           \
+   p = &a;                                                                      \
+@@ -77,12 +80,21 @@ static int test_keys(void) {
+   if(c >= canary_size) return -1;
+   stack_decaps = c;
+ 
+-  if (memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES)){
++  // Alice uses Bobs response to get her secret key (masked)
++  MUPQ_crypto_kem_crypto_kem_keypair_sk_masked(&sk_masked, sk_a);
++  FILL_STACK()
++  MUPQ_crypto_kem_dec_masked(key_c, sendb, &sk_masked);
++  CHECK_STACK()
++  if(c >= canary_size) return -1;
++  stack_decaps_masked = c;
++
++  if (memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES) | memcmp(key_a, key_c, MUPQ_CRYPTO_BYTES)) {
+     return -1;
+   } else {
+     send_stack_usage("keypair stack usage:", stack_key_gen);
+     send_stack_usage("encaps stack usage:", stack_encaps);
+     send_stack_usage("decaps stack usage:", stack_decaps);
++    send_stack_usage("masked decaps stack usage:", stack_decaps_masked);
+     hal_send_str("OK KEYS\n");
+     return 0;
+   }
+diff --git a/crypto_kem/test.c b/crypto_kem/test.c
+index ee7593d..dbb0ca1 100644
+--- a/crypto_kem/test.c
++++ b/crypto_kem/test.c
+@@ -1,6 +1,7 @@
+ #include "api.h"
+ #include "randombytes.h"
+ #include "hal.h"
++#include "fips202.h"
+ 
+ #include <string.h>
+ 
+@@ -21,6 +22,8 @@
+ #define MUPQ_crypto_kem_keypair NAMESPACE(crypto_kem_keypair)
+ #define MUPQ_crypto_kem_enc NAMESPACE(crypto_kem_enc)
+ #define MUPQ_crypto_kem_dec NAMESPACE(crypto_kem_dec)
++#define MUPQ_crypto_kem_crypto_kem_keypair_sk_masked NAMESPACE(crypto_kem_keypair_sk_masked)
++#define MUPQ_crypto_kem_dec_masked NAMESPACE(crypto_kem_dec_masked)
+ 
+ const uint8_t canary[8] = {
+   0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF
+@@ -46,16 +49,25 @@ static int check_canary(const uint8_t *d) {
+ 
+ static int test_keys(void)
+ {
+-  unsigned char key_a[MUPQ_CRYPTO_BYTES+16], key_b[MUPQ_CRYPTO_BYTES+16];
++  unsigned char key_a[MUPQ_CRYPTO_BYTES+16], key_b[MUPQ_CRYPTO_BYTES+16], key_c[MUPQ_CRYPTO_BYTES+16];
+   unsigned char pk[MUPQ_CRYPTO_PUBLICKEYBYTES+16];
+   unsigned char sendb[MUPQ_CRYPTO_CIPHERTEXTBYTES+16];
+   unsigned char sk_a[MUPQ_CRYPTO_SECRETKEYBYTES+16];
+ 
++  struct //__attribute__((__packed__)) //TODO: check alignment
++  {
++    unsigned char canary_front[8];
++    sk_masked_s sk_masked;
++    unsigned char canary_back[8];
++  } sk_masked_with_canaries;
++
+   write_canary(key_a); write_canary(key_a+sizeof(key_a)-8);
+   write_canary(key_b); write_canary(key_b+sizeof(key_b)-8);
++  write_canary(key_c); write_canary(key_c+sizeof(key_c)-8);
+   write_canary(pk); write_canary(pk+sizeof(pk)-8);
+   write_canary(sendb); write_canary(sendb+sizeof(sendb)-8);
+   write_canary(sk_a); write_canary(sk_a+sizeof(sk_a)-8);
++  write_canary(sk_masked_with_canaries.canary_front); write_canary(sk_masked_with_canaries.canary_back);
+ 
+ 
+   int i;
+@@ -74,7 +86,12 @@ static int test_keys(void)
+     MUPQ_crypto_kem_dec(key_a+8, sendb+8, sk_a+8);
+     hal_send_str("DONE decapsulation!");
+ 
+-    if(memcmp(key_a+8, key_b+8, MUPQ_CRYPTO_BYTES))
++    //Alice uses Bobs response to get her secret key (masked)
++    MUPQ_crypto_kem_crypto_kem_keypair_sk_masked(&(sk_masked_with_canaries.sk_masked), sk_a+8);
++    MUPQ_crypto_kem_dec_masked(key_c+8, sendb+8, &(sk_masked_with_canaries.sk_masked));
++    hal_send_str("DONE masked decapsulation!");
++
++    if(memcmp(key_a+8, key_b+8, MUPQ_CRYPTO_BYTES) | memcmp(key_a+8, key_c+8, MUPQ_CRYPTO_BYTES))
+     {
+       hal_send_str("ERROR KEYS\n");
+     }
+@@ -82,7 +99,9 @@ static int test_keys(void)
+             check_canary(key_b) || check_canary(key_b+sizeof(key_b)-8) ||
+             check_canary(pk) || check_canary(pk+sizeof(pk)-8) ||
+             check_canary(sendb) || check_canary(sendb+sizeof(sendb)-8) ||
+-            check_canary(sk_a) || check_canary(sk_a+sizeof(sk_a)-8))
++            check_canary(sk_a) || check_canary(sk_a+sizeof(sk_a)-8) ||
++            check_canary(key_c) || check_canary(key_b+sizeof(key_c)-8) ||
++            check_canary(sk_masked_with_canaries.canary_front) || check_canary(sk_masked_with_canaries.canary_back))
+     {
+       hal_send_str("ERROR canary overwritten\n");
+     }
+@@ -99,9 +118,11 @@ static int test_keys(void)
+ static int test_invalid_sk_a(void)
+ {
+   unsigned char sk_a[MUPQ_CRYPTO_SECRETKEYBYTES];
+-  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES];
++  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES], key_c[MUPQ_CRYPTO_BYTES], key_d[MUPQ_CRYPTO_BYTES];
+   unsigned char pk[MUPQ_CRYPTO_PUBLICKEYBYTES];
+   unsigned char sendb[MUPQ_CRYPTO_CIPHERTEXTBYTES];
++  uint8_t kr[64]; // Will contain key, coins
++  sk_masked_s sk_masked;
+   int i;
+ 
+   for(i=0; i<NTESTS; i++)
+@@ -118,7 +139,16 @@ static int test_invalid_sk_a(void)
+     //Alice uses Bobs response to get her secre key
+     MUPQ_crypto_kem_dec(key_a, sendb, sk_a);
+ 
+-    if(!memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES))
++    //Alice uses Bobs response to get her secret key (masked)
++    MUPQ_crypto_kem_crypto_kem_keypair_sk_masked(&sk_masked, sk_a);
++    MUPQ_crypto_kem_dec_masked(key_c, sendb, &sk_masked);
++
++    // The following part is specific to SABER's CCA transform
++    sha3_256(kr + 32, sendb, MUPQ_CRYPTO_CIPHERTEXTBYTES); // overwrite coins in kr with h(c)
++    memcpy(kr, sk_a + MUPQ_CRYPTO_SECRETKEYBYTES - MUPQ_CRYPTO_BYTES, MUPQ_CRYPTO_BYTES);
++    sha3_256(key_d, kr, 64); // hash concatenation of pre-k and h(c) to k
++
++    if((!memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES)) | memcmp(key_a, key_d, MUPQ_CRYPTO_BYTES) | !memcmp(key_c, key_b, MUPQ_CRYPTO_BYTES) | memcmp(key_c, key_d, MUPQ_CRYPTO_BYTES))
+     {
+       hal_send_str("ERROR invalid sk_a\n");
+     }
+@@ -135,9 +165,11 @@ static int test_invalid_sk_a(void)
+ static int test_invalid_ciphertext(void)
+ {
+   unsigned char sk_a[MUPQ_CRYPTO_SECRETKEYBYTES];
+-  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES];
++  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES], key_c[MUPQ_CRYPTO_BYTES], key_d[MUPQ_CRYPTO_BYTES];;
+   unsigned char pk[MUPQ_CRYPTO_PUBLICKEYBYTES];
+   unsigned char sendb[MUPQ_CRYPTO_CIPHERTEXTBYTES];
++  uint8_t kr[64]; // Will contain key, coins
++  sk_masked_s sk_masked;
+   int i;
+   size_t pos;
+ 
+@@ -157,7 +189,16 @@ static int test_invalid_ciphertext(void)
+     //Alice uses Bobs response to get her secret key
+     MUPQ_crypto_kem_dec(key_a, sendb, sk_a);
+ 
+-    if(!memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES))
++    //Alice uses Bobs response to get her secret key (masked)
++    MUPQ_crypto_kem_crypto_kem_keypair_sk_masked(&sk_masked, sk_a);
++    MUPQ_crypto_kem_dec_masked(key_c, sendb, &sk_masked);
++
++    // The following part is specific to SABER's CCA transform
++    sha3_256(kr + 32, sendb, MUPQ_CRYPTO_CIPHERTEXTBYTES); // overwrite coins in kr with h(c)
++    memcpy(kr, sk_a + MUPQ_CRYPTO_SECRETKEYBYTES - MUPQ_CRYPTO_BYTES, MUPQ_CRYPTO_BYTES);
++    sha3_256(key_d, kr, 64); // hash concatenation of pre-k and h(c) to k
++
++    if((!memcmp(key_a, key_b, MUPQ_CRYPTO_BYTES)) | memcmp(key_a, key_d, MUPQ_CRYPTO_BYTES) | !memcmp(key_c, key_b, MUPQ_CRYPTO_BYTES) | memcmp(key_c, key_d, MUPQ_CRYPTO_BYTES))
+     {
+       hal_send_str("ERROR invalid ciphertext\n");
+     }
+diff --git a/crypto_kem/testvectors.c b/crypto_kem/testvectors.c
+index d329aaf..1e14b62 100644
+--- a/crypto_kem/testvectors.c
++++ b/crypto_kem/testvectors.c
+@@ -25,6 +25,8 @@
+ #define MUPQ_crypto_kem_keypair NAMESPACE(crypto_kem_keypair)
+ #define MUPQ_crypto_kem_enc NAMESPACE(crypto_kem_enc)
+ #define MUPQ_crypto_kem_dec NAMESPACE(crypto_kem_dec)
++#define MUPQ_crypto_kem_crypto_kem_keypair_sk_masked NAMESPACE(crypto_kem_keypair_sk_masked)
++#define MUPQ_crypto_kem_dec_masked NAMESPACE(crypto_kem_dec_masked)
+ 
+ typedef uint32_t uint32;
+ 
+@@ -84,10 +86,11 @@ int randombytes(uint8_t *x, size_t xlen)
+ 
+ int main(void)
+ {
+-  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES];
++  unsigned char key_a[MUPQ_CRYPTO_BYTES], key_b[MUPQ_CRYPTO_BYTES], key_c[MUPQ_CRYPTO_BYTES];
+   unsigned char pk[MUPQ_CRYPTO_PUBLICKEYBYTES];
+   unsigned char sendb[MUPQ_CRYPTO_CIPHERTEXTBYTES];
+   unsigned char sk_a[MUPQ_CRYPTO_SECRETKEYBYTES];
++  sk_masked_s sk_masked;
+   int i,j;
+ 
+   hal_setup(CLOCK_FAST);
+@@ -111,11 +114,15 @@ int main(void)
+     // Decapsulation
+     MUPQ_crypto_kem_dec(key_a, sendb, sk_a);
+ 
+-    printbytes(key_a,MUPQ_CRYPTO_BYTES);
++    // Masked Decapsulation
++    MUPQ_crypto_kem_crypto_kem_keypair_sk_masked(&sk_masked, sk_a);
++    MUPQ_crypto_kem_dec_masked(key_c, sendb, &sk_masked);
++
++    printbytes(key_c,MUPQ_CRYPTO_BYTES);
+ 
+     for(j=0;j<MUPQ_CRYPTO_BYTES;j++)
+     {
+-      if(key_a[j] != key_b[j])
++      if((key_a[j] != key_b[j]) | (key_c[j] != key_b[j]))
+       {
+         hal_send_str("ERROR");
+         hal_send_str("#");

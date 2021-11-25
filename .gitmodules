@@ -1,0 +1,3 @@
+[submodule "pqm4"]
+	path = pqm4
+	url = git@github.com:mupq/pqm4.git

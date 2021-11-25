@@ -1,0 +1,1 @@
+Michiel Van Beirendonck, Jan-Pieter D’anvers, Angshuman Karmakar, Josep Balasch, and Ingrid Verbauwhede. 2021. A Side-Channel-Resistant Implementation of SABER. <i>J. Emerg. Technol. Comput. Syst.</i> 17, 2, Article 10 (April 2021), 26 pages. DOI:https://doi.org/10.1145/3429983
