@@ -1,6 +1,6 @@
 # A Side-Channel Resistant Implementation of SABER
 
-This repository contains ARM Cortex-M4 code for a first-order masked implementation of [SABER](https://github.com/KULeuven-COSIC/SABER). The implementation is described in our paper "A Side-Channel-Resistant Implementation of SABER" [[ePrint]](https://eprint.iacr.org/2020/733.pdf) that appeared in ACM Journal on Emerging Technologies in Computing Systems (JETC), Volume 17, Issue 2 [[ACM]](https://dl.acm.org/doi/abs/10.1145/3429983).
+This repository contains ARM Cortex-M4 code for a first-order masked implementation of [SABER](https://github.com/KULeuven-COSIC/SABER). The implementation is described in our paper "A Side-Channel-Resistant Implementation of SABER", Michiel Van Beirendonck, Jan-Pieter D’anvers, Angshuman Karmakar, Josep Balasch, and Ingrid Verbauwhede [[ePrint]](https://eprint.iacr.org/2020/733.pdf) that appeared in ACM Journal on Emerging Technologies in Computing Systems (JETC), Volume 17, Issue 2 [[ACM]](https://dl.acm.org/doi/abs/10.1145/3429983).
 
 ## Sources
 
@@ -54,3 +54,6 @@ Benchmarks can then be found in the [benchmarks](./pqm4/benchmarks/) folder.
 ## Bibliography
 
 If you use or build upon the code in this repository, please cite our paper using our [citation key](./bib).
+
+---
+Michiel Van Beirendonck, Jan-Pieter D’anvers, Angshuman Karmakar, Josep Balasch, and Ingrid Verbauwhede
